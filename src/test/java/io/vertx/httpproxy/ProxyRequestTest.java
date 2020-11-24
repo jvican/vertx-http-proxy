@@ -20,13 +20,11 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.httpproxy.impl.BufferedReadStream;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -241,7 +239,7 @@ public class ProxyRequestTest extends ProxyTestBase {
     });
     HttpClient httpClient = vertx.createHttpClient();
     httpClient.request(HttpMethod.GET, 8080, "localhost", "/somepath", ctx.asyncAssertSuccess(req -> {
-      req.onComplete(ctx.asyncAssertSuccess(resp -> {
+      req.response().onComplete(ctx.asyncAssertSuccess(resp -> {
         ctx.assertEquals(502, resp.statusCode());
       }));
       if (chunked) {
@@ -488,7 +486,7 @@ public class ProxyRequestTest extends ProxyTestBase {
           req.write(chunk);
         }
       });
-      req.onComplete(ctx.asyncAssertSuccess(resp -> {
+      req.response().onComplete(ctx.asyncAssertSuccess(resp -> {
         resp.body(ctx.asyncAssertSuccess(body -> {
           ctx.assertEquals("another-request", body.toString());
         }));

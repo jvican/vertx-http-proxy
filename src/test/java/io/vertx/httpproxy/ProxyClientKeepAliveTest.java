@@ -1,23 +1,29 @@
 package io.vertx.httpproxy;
 
+import static io.vertx.core.http.HttpMethod.GET;
+import static io.vertx.core.http.HttpMethod.HEAD;
+
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpConnection;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import org.junit.Test;
-
 import java.io.Closeable;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static io.vertx.core.http.HttpMethod.GET;
-import static io.vertx.core.http.HttpMethod.HEAD;
+import org.junit.Test;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -107,7 +113,7 @@ public class ProxyClientKeepAliveTest extends ProxyTestBase {
     Async async = ctx.async();
     client.request(HttpMethod.POST, 8080, "localhost", "/")
         .onComplete(ctx.asyncAssertSuccess(req -> {
-          req.onComplete(ctx.asyncAssertSuccess(resp -> {
+          req.response().onComplete(ctx.asyncAssertSuccess(resp -> {
             ctx.assertEquals(502, resp.statusCode());
             async.complete();
           }));
@@ -132,7 +138,7 @@ public class ProxyClientKeepAliveTest extends ProxyTestBase {
     HttpClient client = vertx.createHttpClient();
     client.request(HttpMethod.POST, 8080, "localhost", "/")
         .onComplete(ctx.asyncAssertSuccess(req -> {
-          req.onComplete(ctx.asyncAssertFailure());
+          req.response().onComplete(ctx.asyncAssertFailure());
           req.putHeader("Content-Length", "2048");
           req.write(Buffer.buffer(new byte[1024]));
           closeLatch.future().onComplete(ar -> {
@@ -189,7 +195,7 @@ public class ProxyClientKeepAliveTest extends ProxyTestBase {
         .onComplete(ctx.asyncAssertSuccess(req -> {
           req.putHeader("Content-Length", "2048");
           req.write(Buffer.buffer(new byte[1024]));
-          req.onComplete(ctx.asyncAssertSuccess(resp -> {
+          req.send().onComplete(ctx.asyncAssertSuccess(resp -> {
             ctx.assertEquals(200, resp.statusCode());
           }));
         }));
